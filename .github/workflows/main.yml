@@ -2,9 +2,8 @@ name: Auto Sync IPTV Live
 
 on:
   schedule:
-    # 每天北京时间早上 6 点自动执行同步
     - cron: '0 22 * * *'
-  workflow_dispatch: # 允许在后台随时手动点击运行
+  workflow_dispatch:
 
 jobs:
   sync:
@@ -13,17 +12,22 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Download Latest IPv6 M3U
+      - name: Download Multi-Source M3U
         run: |
-          # 创建存放直播源的文件夹
           mkdir -p live
-          # 抓取最新的 IPv6 列表
+          
+          # 1. 国内极速源 (满足：CCTV系列、国内电影频道)
           curl -s https://raw.githubusercontent.com/fanmingming/live/main/tv/m3u/ipv6.m3u -o live/ipv6.m3u
+          
+          # 2. 港澳台及国际源 (满足：TVB、无线新闻、NOW新闻、凤凰卫视)
+          curl -s https://raw.githubusercontent.com/fanmingming/live/main/tv/m3u/global.m3u -o live/global.m3u
+          
+          # 3. 体育专属源 (满足：NBA直播、五大联赛、CCTV5/5+)
+          curl -s https://raw.githubusercontent.com/fanmingming/live/main/tv/m3u/sport.m3u -o live/sport.m3u
           
       - name: Commit and Push Changes
         run: |
           git config --local user.email "actions@github.com"
           git config --local user.name "GitHub Actions"
-          git add live/ipv6.m3u
-          # 只有文件有变动时才提交，高效不冗余
-          git diff --cached --quiet || (git commit -m "Update IPTV Live Source" && git push)
+          git add live/
+          git diff --cached --quiet || (git commit -m "Update All IPTV Live Sources" && git push)
