@@ -5,6 +5,10 @@ on:
     - cron: '0 22 * * *'
   workflow_dispatch:
 
+# 【核心修复】强行赋予最高写入权限，彻底解决保存报错
+permissions:
+  contents: write
+
 jobs:
   sync:
     runs-on: ubuntu-latest
@@ -16,18 +20,21 @@ jobs:
         run: |
           mkdir -p live
           
-          # 1. 国内极速源 (使用最新的官方加速镜像)
-          curl -s https://live.fanmingming.com/tv/m3u/ipv6.m3u -o live/ipv6.m3u
-          
-          # 2. 港澳台及国际源 
-          curl -s https://live.fanmingming.com/tv/m3u/global.m3u -o live/global.m3u
-          
-          # 3. 央视及体育专属源 
-          curl -s https://live.fanmingming.com/tv/m3u/v6.m3u -o live/sport.m3u
+          # 加入 -sL 参数，确保即使源地址重定向也能强行抓取
+          curl -sL https://live.fanmingming.com/tv/m3u/ipv6.m3u -o live/ipv6.m3u
+          curl -sL https://live.fanmingming.com/tv/m3u/global.m3u -o live/global.m3u
+          curl -sL https://live.fanmingming.com/tv/m3u/v6.m3u -o live/sport.m3u
           
       - name: Commit and Push Changes
         run: |
           git config --local user.email "actions@github.com"
           git config --local user.name "GitHub Actions"
           git add live/
-          git diff --cached --quiet || (git commit -m "Update All IPTV Live Sources" && git push)
+          
+          # 防报错逻辑：有更新才提交，没更新直接跳过，绝不报错
+          if ! git diff --cached --quiet; then
+            git commit -m "Auto Update IPTV Live Sources"
+            git push
+          else
+            echo "源文件未发生变化，无需重复提交。"
+          fi
