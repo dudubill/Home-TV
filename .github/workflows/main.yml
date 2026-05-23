@@ -16,14 +16,14 @@ jobs:
         run: |
           mkdir -p live
           
-          # 1. 国内极速源 (满足：CCTV系列、国内电影频道)
-          curl -s https://raw.githubusercontent.com/fanmingming/live/main/tv/m3u/ipv6.m3u -o live/ipv6.m3u
+          # 1. 国内极速源 (使用最新的官方加速镜像)
+          curl -s https://live.fanmingming.com/tv/m3u/ipv6.m3u -o live/ipv6.m3u
           
-          # 2. 港澳台及国际源 (满足：TVB、无线新闻、NOW新闻、凤凰卫视)
-          curl -s https://raw.githubusercontent.com/fanmingming/live/main/tv/m3u/global.m3u -o live/global.m3u
+          # 2. 港澳台及国际源 
+          curl -s https://live.fanmingming.com/tv/m3u/global.m3u -o live/global.m3u
           
-          # 3. 体育专属源 (满足：NBA直播、五大联赛、CCTV5/5+)
-          curl -s https://raw.githubusercontent.com/fanmingming/live/main/tv/m3u/sport.m3u -o live/sport.m3u
+          # 3. 央视及体育专属源 
+          curl -s https://live.fanmingming.com/tv/m3u/v6.m3u -o live/sport.m3u
           
       - name: Commit and Push Changes
         run: |
