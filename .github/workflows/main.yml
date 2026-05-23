@@ -1,0 +1,29 @@
+name: Auto Sync IPTV Live
+
+on:
+  schedule:
+    # 每天北京时间早上 6 点自动执行同步
+    - cron: '0 22 * * *'
+  workflow_dispatch: # 允许在后台随时手动点击运行
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Download Latest IPv6 M3U
+        run: |
+          # 创建存放直播源的文件夹
+          mkdir -p live
+          # 抓取最新的 IPv6 列表
+          curl -s https://raw.githubusercontent.com/fanmingming/live/main/tv/m3u/ipv6.m3u -o live/ipv6.m3u
+          
+      - name: Commit and Push Changes
+        run: |
+          git config --local user.email "actions@github.com"
+          git config --local user.name "GitHub Actions"
+          git add live/ipv6.m3u
+          # 只有文件有变动时才提交，高效不冗余
+          git diff --cached --quiet || (git commit -m "Update IPTV Live Source" && git push)
